@@ -12,6 +12,7 @@
   <build_depend>sm_python</build_depend>
   <build_depend>aslam_cameras</build_depend>
   <build_depend>ethz_apriltag2</build_depend>
+  <build_depend>apriltag3</build_depend>
   <build_depend>numpy_eigen</build_depend>
   <build_depend>sm_common</build_depend>
   <build_depend>sm_logging</build_depend>

@@ -173,6 +173,7 @@ def main():
                 
             #extract the targets
             multithreading = not (parsed.verbose or parsed.showextraction)
+            multithreading =False #otherwise memory leak
             observations = kc.extractCornersFromDataset(cam.dataset, cam.ctarget.detector, 
                                                         multithreading=multithreading, clearImages=False,
                                                         noTransformation=True)

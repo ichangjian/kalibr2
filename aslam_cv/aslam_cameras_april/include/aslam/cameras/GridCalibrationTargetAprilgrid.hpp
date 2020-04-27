@@ -16,9 +16,76 @@
 //#include "apriltags/Tag25h9.h"
 //#include "apriltags/Tag36h9.h"
 #include "apriltags/Tag36h11.h"
-
+extern "C"
+{
+//apriltag 3
+#include "apriltag.h"
+#include "tagGrid36h11.h"
+}
 namespace aslam {
 namespace cameras {
+
+class AprilGrid
+{
+private:
+  unsigned int m_blackTagBorder = 2;
+
+  apriltag_family_t *tf = NULL;   // tag36h11_create(m_blackTagBorder);
+  apriltag_detector_t *td = NULL; // apriltag_detector_create();
+
+public:
+  AprilGrid(unsigned int blackTagBorder = 2)
+  {
+    m_blackTagBorder = blackTagBorder;
+    tf = tagGrid36h11_create(m_blackTagBorder);
+    td = apriltag_detector_create();
+
+    apriltag_detector_add_family(td, tf);
+    td->quad_decimate = 1;
+    td->quad_sigma = 0;
+    td->nthreads = 1;
+    td->debug = 0;
+    td->refine_edges = 1;
+    td->qtp.erode = 1;
+  }
+
+  std::vector<AprilTags::TagDetection> extractTags(const cv::Mat &image)
+  {
+
+    image_u8_t im = {.width = image.cols,
+                     .height = image.rows,
+                     .stride = image.cols,
+                     .buf = image.data};
+
+    zarray_t *detections = apriltag_detector_detect(td, &im);
+    std::vector<AprilTags::TagDetection> tgDetections;
+    for (int i = 0; i < zarray_size(detections); i++)
+    {
+      AprilTags::TagDetection tgd;
+
+      apriltag_detection_t *det;
+      zarray_get(detections, i, &det);
+      tgd.good = true;
+      tgd.id = det->id;
+      for (size_t j = 0; j < 4; j++)
+      {
+        tgd.p[j] = std::pair<float, float>(det->p[j][0], det->p[j][1]);
+      }
+      tgd.hammingDistance = det->hamming;
+      tgd.cxy = std::pair<float, float>(det->c[0], det->c[1]);
+      tgDetections.push_back(tgd);
+    }
+    apriltag_detections_destroy(detections);
+
+    return tgDetections;
+  }
+
+  ~AprilGrid()
+  {
+    apriltag_detector_destroy(td);
+    tagGrid36h11_destroy(tf);
+  }
+};
 
 class GridCalibrationTargetAprilgrid : public GridCalibrationTargetBase {
  public:
@@ -111,6 +178,7 @@ class GridCalibrationTargetAprilgrid : public GridCalibrationTargetBase {
   // create a detector instance
   AprilTags::TagCodes _tagCodes;
   boost::shared_ptr<AprilTags::TagDetector> _tagDetector;
+  boost::shared_ptr<AprilGrid> _tagGridDetector;
 
   ///////////////////////////////////////////////////
   // Serialization support

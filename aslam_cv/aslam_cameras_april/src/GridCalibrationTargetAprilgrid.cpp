@@ -62,6 +62,7 @@ void GridCalibrationTargetAprilgrid::initialize()
 
   //create the tag detector
   _tagDetector = boost::make_shared<AprilTags::TagDetector>(_tagCodes, _options.blackTagBorder);
+  _tagGridDetector = boost::make_shared<AprilGrid>(_options.blackTagBorder);
 }
 
 /// \brief initialize an april grid
@@ -101,7 +102,8 @@ bool GridCalibrationTargetAprilgrid::computeObservation(
   bool success = true;
 
   // detect the tags
-  std::vector<AprilTags::TagDetection> detections = _tagDetector->extractTags(image);
+  // std::vector<AprilTags::TagDetection> detections = _tagDetector->extractTags(image);
+  std::vector<AprilTags::TagDetection> detections = _tagGridDetector->extractTags(image);
 
   /* handle the case in which a tag is identified but not all tag
    * corners are in the image (all data bits in image but border
