@@ -108,6 +108,7 @@ def parseArgs():
     outputSettings.add_argument('--show-extraction', action='store_true', dest='showextraction', help='Show the calibration target extraction. (disables plots)')
     outputSettings.add_argument('--plot', action='store_true', dest='plot', help='Plot during calibration (this could be slow).')
     outputSettings.add_argument('--dont-show-report', action='store_true', dest='dontShowReport', help='Do not show the report on screen after calibration.')
+    outputSettings.add_argument('--dont-generate-report', action='store_true', dest='dontGenerateReport', help='Do not generate the pdf report after calibration.')
        
     #print help if no argument is specified
     if len(sys.argv)==1:
@@ -414,12 +415,13 @@ def main():
             kcc.saveResultTxt(calibrator, filename=resultFileTxt)
             print "  Detailed results written to file: {0}".format(resultFileTxt)
             
-            #generate report
-            reportFile = "report-cam-" + bagtag + ".pdf"
-            G=None; 
-            if numCams>1: 
-                G=graph
-            kcc.generateReport(calibrator, reportFile, showOnScreen=not parsed.dontShowReport, graph=G, removedOutlierCorners=removedOutlierCorners);
+            if not parsed.dontGenerateReport:
+                #generate report
+                reportFile = "report-cam-" + bagtag + ".pdf"
+                G=None; 
+                if numCams>1: 
+                    G=graph
+                kcc.generateReport(calibrator, reportFile, showOnScreen=not parsed.dontShowReport, graph=G, removedOutlierCorners=removedOutlierCorners)
             
         except kcc.OptimizationDiverged:
             restartAttempts-=1

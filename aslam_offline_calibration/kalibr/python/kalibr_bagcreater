@@ -21,6 +21,7 @@ import csv
 parser = argparse.ArgumentParser(description='Create a ROS bag using the images and imu data.')
 parser.add_argument('--folder',  metavar='folder', nargs='?', help='Data folder')
 parser.add_argument('--output-bag', metavar='output_bag',  default="output.bag", help='ROS bag file %(default)s')
+parser.add_argument('--skip', metavar='skip',  default="1", help='get the sub set of image with 1/skip')
 
 #print help if no argument is specified
 if len(sys.argv)<2:
@@ -101,14 +102,29 @@ def createImuMessge(timestamp_int, omega, alpha):
 try:
     bag = rosbag.Bag(parsed.output_bag, 'w')
     
-    #write images
-    camfolders = getCamFoldersFromDir(parsed.folder)
-    for camfolder in camfolders:
-        camdir = parsed.folder + "/{0}".format(camfolder)
-        image_files = getImageFilesFromDir(camdir)
-        for image_filename in image_files:
-            image_msg, timestamp = loadImageToRosMsg(image_filename)
-            bag.write("/{0}/image_raw".format(camfolder), image_msg, timestamp)
+    skip=int(parsed.skip)
+    if skip>1:
+        #write images
+        print "create the sub set of image with 1/",skip
+        camfolders = getCamFoldersFromDir(parsed.folder)
+        for camfolder in camfolders:
+            camdir = parsed.folder + "/{0}".format(camfolder)
+            image_files = getImageFilesFromDir(camdir)
+            i=0
+            for image_filename in image_files:
+                i=i+1
+                if i%skip==0:
+                    image_msg, timestamp = loadImageToRosMsg(image_filename)
+                    bag.write("/{0}/image_raw".format(camfolder), image_msg, timestamp)
+    else:
+        #write images
+        camfolders = getCamFoldersFromDir(parsed.folder)
+        for camfolder in camfolders:
+            camdir = parsed.folder + "/{0}".format(camfolder)
+            image_files = getImageFilesFromDir(camdir)
+            for image_filename in image_files:
+                image_msg, timestamp = loadImageToRosMsg(image_filename)
+                bag.write("/{0}/image_raw".format(camfolder), image_msg, timestamp)
 
     #write imu data
     imufiles = getImuCsvFiles(parsed.folder)
