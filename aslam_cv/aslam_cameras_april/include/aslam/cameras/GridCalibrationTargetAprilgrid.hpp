@@ -178,7 +178,7 @@ class GridCalibrationTargetAprilgrid : public GridCalibrationTargetBase {
   // create a detector instance
   AprilTags::TagCodes _tagCodes;
   boost::shared_ptr<AprilTags::TagDetector> _tagDetector;
-  boost::shared_ptr<AprilGrid> _tagGridDetector;
+  // boost::shared_ptr<AprilGrid> _tagGridDetector;
 
   ///////////////////////////////////////////////////
   // Serialization support
