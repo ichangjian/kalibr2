@@ -114,6 +114,10 @@ try:
             for image_filename in image_files:
                 i=i+1
                 if i%skip==0:
+                    timestamp_nsecs = os.path.splitext(os.path.basename(image_filename))[0]
+                    if len(timestamp_nsecs)<10:
+                        print "Dirty data:",image_filename
+                        continue
                     image_msg, timestamp = loadImageToRosMsg(image_filename)
                     bag.write("/{0}/image_raw".format(camfolder), image_msg, timestamp)
     else:
@@ -123,6 +127,10 @@ try:
             camdir = parsed.folder + "/{0}".format(camfolder)
             image_files = getImageFilesFromDir(camdir)
             for image_filename in image_files:
+                timestamp_nsecs = os.path.splitext(os.path.basename(image_filename))[0]
+                if len(timestamp_nsecs)<10:
+                    print "Dirty data:",image_filename
+                    continue
                 image_msg, timestamp = loadImageToRosMsg(image_filename)
                 bag.write("/{0}/image_raw".format(camfolder), image_msg, timestamp)
 
@@ -134,6 +142,9 @@ try:
             reader = csv.reader(csvfile, delimiter=',')
             headers = next(reader, None)
             for row in reader:
+                if len(row) != 7 or len(row[0])<10:
+                    print "Dirty data:",row
+                    continue
                 imumsg, timestamp = createImuMessge(row[0], row[1:4], row[4:7])
                 bag.write("/{0}".format(topic), imumsg, timestamp)
 finally:
