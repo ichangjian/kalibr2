@@ -790,8 +790,9 @@ bool PinholeProjection<DISTORTION_T>::initializeIntrinsics(const std::vector<Gri
       f_guesses.push_back(input_guess);
     } else {
       std::cout << "Initialization of focal length failed. You can enable"
-        << " manual input by setting 'KALIBR_MANUAL_FOCAL_LENGTH_INIT'." << std::endl;
-      return false;
+                << " manual input by setting 'KALIBR_MANUAL_FOCAL_LENGTH_INIT'.I guess it is 300." << std::endl;
+      f_guesses.push_back(300);
+      // return false;
     }
   }
   // Get the median of the guesses if available.
