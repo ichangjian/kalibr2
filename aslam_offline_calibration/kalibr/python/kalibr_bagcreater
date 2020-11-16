@@ -22,6 +22,9 @@ parser = argparse.ArgumentParser(description='Create a ROS bag using the images 
 parser.add_argument('--folder',  metavar='folder', nargs='?', help='Data folder')
 parser.add_argument('--output-bag', metavar='output_bag',  default="output.bag", help='ROS bag file %(default)s')
 parser.add_argument('--skip', metavar='skip',  default="1", help='get the sub set of image with 1/skip')
+parser.add_argument('--raw-h', metavar='raw_h',  default="0", help='get the raw image height')
+parser.add_argument('--raw-w', metavar='raw_w',  default="0", help='get the raw image width')
+parser.add_argument('--raw-b', metavar='raw_b',  default="8", help='get the raw image width')
 
 #print help if no argument is specified
 if len(sys.argv)<2:
@@ -38,7 +41,7 @@ def getImageFilesFromDir(dir):
     if os.path.exists(dir):
         for path, names, files in os.walk(dir):
             for f in files:
-                if os.path.splitext(f)[1] in ['.bmp', '.png', '.jpg']:
+                if os.path.splitext(f)[1] in ['.bmp', '.png', '.jpg', '.raw']:
                     image_files.append( os.path.join( path, f ) )
                     timestamps.append(os.path.splitext(f)[0]) 
     #sort by timestamp
@@ -68,7 +71,28 @@ def getImuCsvFiles(dir):
     return imu_files
 
 def loadImageToRosMsg(filename):
-    image_np = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+    if filename[-3:] == "raw":
+        fd = open(filename, 'rb')
+        rows = int(parsed.raw_h)
+        cols = int(parsed.raw_w)
+
+        if rows == 0 or cols == 0:
+            print "skip this image for unknow the size of image"
+
+        if 8 != int(parsed.raw_b):
+            print "can't process this raw-bit"
+            exit(0)
+
+        f = np.fromfile(fd, dtype=np.uint8, count=rows*cols)
+        if f.shape[0] != rows*cols:
+            print "the size of image is wrong"
+            exit(0)
+
+        image_np = f.reshape((rows, cols))
+        # cv2.imwrite(filename+".png", image_np)
+        fd.close()
+    else:
+        image_np = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
     
     timestamp_nsecs = os.path.splitext(os.path.basename(filename))[0]
     timestamp = rospy.Time( secs=int(timestamp_nsecs[0:-9]), nsecs=int(timestamp_nsecs[-9:]) )
